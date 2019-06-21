@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"syscall"
 	"time"
+
 	"github.com/fagongzi/gateway/pkg/proxy"
 	"github.com/fagongzi/gateway/pkg/util"
 	"github.com/fagongzi/log"
@@ -31,6 +32,9 @@ var (
 	filters        = &filterFlag{}
 
 	addr                          = flag.String("addr", "127.0.0.1:80", "Addr: http request entrypoint")
+	addrHTTPS                     = flag.String("addr-https", "127.0.0.1:443", "Addr: https request entrypoint")
+	defaultTLSCert                = flag.String("default-tls-cert", "", "Default TLS cert file path")
+	defaultTLSKey                 = flag.String("default-tls-key", "", "Default TLS key file path")
 	addrRPC                       = flag.String("addr-rpc", "127.0.0.1:9091", "Addr: manager request entrypoint")
 	addrStore                     = flag.String("addr-store", "etcd://127.0.0.1:2379", "Addr: store of meta data, support etcd")
 	addrStoreUser                 = flag.String("addr-store-user", "", "addr Store UserName")
@@ -55,7 +59,7 @@ var (
 	version                       = flag.Bool("version", false, "Show version info")
 
 	// internal plugin configuration file
-	jwtCfg = flag.String("jwt", "", "PLugin(JWT): jwt plugin configuration file, json format")
+	jwtCfg = flag.String("jwt", "", "Plugin(JWT): jwt plugin configuration file, json format")
 
 	// metric
 	metricJob          = flag.String("metric-job", "", "prometheus job name")
@@ -68,6 +72,7 @@ var (
 )
 
 func init() {
+	defaultFilters.Set(proxy.FilterPrepare)
 	defaultFilters.Set(proxy.FilterWhiteList)
 	defaultFilters.Set(proxy.FilterBlackList)
 	defaultFilters.Set(proxy.FilterCaching)
@@ -85,7 +90,8 @@ func main() {
 	flag.Var(filters, "filter", "Plugin(Filter): format is <filter name>[:plugin file path][:plugin config file path]")
 	flag.Parse()
 
-	if *version && util.PrintVersion() {
+	if *version {
+		util.PrintVersion()
 		os.Exit(0)
 	}
 
@@ -138,6 +144,9 @@ func getCfg() *proxy.Cfg {
 	}
 
 	cfg.Addr = *addr
+	cfg.AddrHTTPS = *addrHTTPS
+	cfg.DefaultTLSCert = *defaultTLSCert
+	cfg.DefaultTLSKey = *defaultTLSKey
 	cfg.AddrRPC = *addrRPC
 	cfg.AddrPPROF = *addrPPROF
 	cfg.AddrStore = *addrStore

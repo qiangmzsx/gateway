@@ -10,10 +10,12 @@ import (
 
 var (
 	// ErrUnknownFilter unknown filter error
-	ErrUnknownFilter = errors.New("unknow filter")
+	ErrUnknownFilter = errors.New("unknown filter")
 )
 
 const (
+	// FilterPrepare prepare filter
+	FilterPrepare = "PREPARE"
 	// FilterHTTPAccess access log filter
 	FilterHTTPAccess = "HTTP-ACCESS"
 	// FilterHeader header filter
@@ -48,6 +50,8 @@ func (p *Proxy) newFilter(filterSpec *FilterSpec) (filter.Filter, error) {
 	input := strings.ToUpper(filterSpec.Name)
 
 	switch input {
+	case FilterPrepare:
+		return newPrepareFilter(), nil
 	case FilterHTTPAccess:
 		return newAccessFilter(), nil
 	case FilterHeader:
